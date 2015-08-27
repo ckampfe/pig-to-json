@@ -18,6 +18,7 @@ import org.json.simple.JSONObject;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 public class ToJson extends EvalFunc<String> {
@@ -118,6 +119,19 @@ public class ToJson extends EvalFunc<String> {
     }
 
     /**
+     * Convert a map to a JSON object
+     */
+    private static JSONObject mapToJson(Map<String, Object> map, FieldSchema mapFieldSchema) throws ExecException {
+        JSONObject json = new JSONObject();
+        for(Map.Entry<String, Object> entry : map.entrySet()) {
+            Object value = fieldToJson(entry.getValue(), mapFieldSchema);
+            json.put(entry.getKey(), value);
+        }
+
+        return json;
+    }
+
+    /**
      * Find the type of a field and convert it to JSON as required.
      */
     private static Object fieldToJson(Object value, FieldSchema fieldSchema) throws ExecException {
@@ -139,7 +153,7 @@ public class ToJson extends EvalFunc<String> {
                 return bagToJson(DataType.toBag((DataBag)value), fieldSchema);
 
             case DataType.MAP:
-                throw new ExecException("Map type is not current supported with JsonStorage");
+                return mapToJson((Map) value, fieldSchema);
 
             case DataType.BYTE:
                 throw new ExecException("Byte type is not current supported with JsonStorage");
